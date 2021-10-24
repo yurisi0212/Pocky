@@ -37,7 +37,16 @@ namespace Pocky.MVVM.ViewModel {
         }
 
         private async Task VersionInfoAsync() {
-            await _parentWindow.ShowMessageAsync("Pocky", "Pocky version 1.0.0\n\nCopylight(C)2021 yurisi\nAll rights reserved.\n\n本ソフトウェアはオープンソースソフトウェアです。\nGPL-3.0 Licenseに基づき誰でも複製や改変ができます。\n\nGithub\nhttps://github.com/yurisi0212/Pocky");
+            await _parentWindow.ShowMessageAsync(
+                "Pocky", 
+                "Pocky version 1.0.0\n\n" +
+                "Copylight(C)2021 yurisi All rights reserved.\n" +
+                "本ソフトウェアはJellyParfaitの一部機能を削除したものです。\n\n" +
+                "本ソフトウェアはオープンソースソフトウェアです。\n" +
+                "GPL-3.0 Licenseに基づき誰でも複製や改変ができます。\n\n" +
+                "Github\n" +
+                "https://github.com/yurisi0212/Pocky"
+                );
         }
     }
 }   
