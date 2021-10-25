@@ -1,8 +1,10 @@
 ﻿using GalaSoft.MvvmLight.Command;
 using MahApps.Metro.Controls.Dialogs;
+using Pocky.Helper;
 using Pocky.MVVM.Model;
 using Pocky.MVVM.View;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
@@ -10,6 +12,8 @@ namespace Pocky.MVVM.ViewModel {
     public class MainWindowViewModel : DependencyObject {
 
         private MainWindow _parentWindow;
+
+        private ProgressDialogController _dialog;
 
         private DirectoryHelper _directory;
 
@@ -49,7 +53,34 @@ namespace Pocky.MVVM.ViewModel {
                 );
         }
 
-        private void Download() {
+        private async void Download() {
+            var type = StreamHelper.GetType(YoutubeURLText).Result;
+            _dialog = await _parentWindow.ShowProgressAsync("Pocky", "ダウンロード中...", true);
+            switch (type) {
+                case YoutubeType.Video:
+                    await SingleVideoDownloadAsync();
+                    break;
+                case YoutubeType.Playlist:
+                    await PlaylistDownloadAsync();
+                    break;
+                case YoutubeType.NotFound:
+                    await ShowErrorMessageAsync();
+                    break;             
+            }
+            await _dialog.CloseAsync();
+        }
+
+        private async Task SingleVideoDownloadAsync() {
+
+        }
+
+        private async Task PlaylistDownloadAsync() {
+            
+
+
+        }
+
+        private async Task ShowErrorMessageAsync() {
 
         }
     }

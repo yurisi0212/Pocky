@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace Pocky.MVVM.Model {
+namespace Pocky.Helper {
     public class DirectoryHelper {
 
         public string Path { get; }
