@@ -34,7 +34,7 @@ namespace Pocky.Helper {
                 if (e is ArgumentException || e is YoutubeExplode.Exceptions.PlaylistUnavailableException) {
                     try {
                         var youtubeClient = new YoutubeClient();
-                        var video = await youtubeClient.Videos.GetAsync(url);
+                        var video = youtubeClient.Videos.GetAsync(url);
                         value = YoutubeType.Video;
                     } catch (ArgumentException) {
                         value = YoutubeType.NotFound;

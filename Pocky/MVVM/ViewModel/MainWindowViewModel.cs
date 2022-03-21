@@ -4,9 +4,12 @@ using Pocky.Helper;
 using Pocky.MVVM.Model;
 using Pocky.MVVM.View;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using YoutubeExplode;
+using YoutubeExplode.Converter;
 
 namespace Pocky.MVVM.ViewModel {
     public class MainWindowViewModel : DependencyObject {
@@ -54,9 +57,10 @@ namespace Pocky.MVVM.ViewModel {
         }
 
         private async void Download() {
-            var type = StreamHelper.GetType(YoutubeURLText).Result;
+            var type = StreamHelper.GetType(YoutubeURLText);
+            Debug.Print(type.ToString());
             _dialog = await _parentWindow.ShowProgressAsync("Pocky", "ダウンロード中...", true);
-            switch (type) {
+            switch (type.Result) {
                 case YoutubeType.Video:
                     await SingleVideoDownloadAsync();
                     break;
@@ -71,7 +75,12 @@ namespace Pocky.MVVM.ViewModel {
         }
 
         private async Task SingleVideoDownloadAsync() {
-
+            var youtubeClient = new YoutubeClient();
+            var video = await youtubeClient.Videos.GetAsync(YoutubeURLText);
+            var music = _directory.Path + video.Title + ".mp3";
+            if (File.Exists(music)) File.Delete(music);
+            await youtubeClient.Videos.DownloadAsync(video.Id, music);
+            _dialog.SetProgress(1);
         }
 
         private async Task PlaylistDownloadAsync() {
@@ -81,7 +90,7 @@ namespace Pocky.MVVM.ViewModel {
         }
 
         private async Task ShowErrorMessageAsync() {
-
+            MessageBox.Show("無効なURLです。", "Pocky", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }   
