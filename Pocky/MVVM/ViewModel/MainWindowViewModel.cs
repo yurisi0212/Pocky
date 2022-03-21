@@ -62,7 +62,8 @@ namespace Pocky.MVVM.ViewModel {
             _dialog = await _parentWindow.ShowProgressAsync("Pocky", "ダウンロード中...", true);
             switch (type.Result) {
                 case YoutubeType.Video:
-                    await SingleVideoDownloadAsync();
+                    await SingleVideoDownloadAsync(YoutubeURLText);
+                    _dialog.SetProgress(1);
                     break;
                 case YoutubeType.Playlist:
                     await PlaylistDownloadAsync();
@@ -74,19 +75,30 @@ namespace Pocky.MVVM.ViewModel {
             await _dialog.CloseAsync();
         }
 
-        private async Task SingleVideoDownloadAsync() {
+        private async Task SingleVideoDownloadAsync(string url) {
             var youtubeClient = new YoutubeClient();
-            var video = await youtubeClient.Videos.GetAsync(YoutubeURLText);
+            var video = await youtubeClient.Videos.GetAsync(url);
             var music = _directory.Path + video.Title + ".mp3";
             if (File.Exists(music)) File.Delete(music);
             await youtubeClient.Videos.DownloadAsync(video.Id, music);
-            _dialog.SetProgress(1);
         }
 
         private async Task PlaylistDownloadAsync() {
-            
-
-
+            var youtube = new YoutubeClient();
+            var playlist = await youtube.Playlists.GetAsync(YoutubeURLText);
+            var videos = youtube.Playlists.GetVideosAsync(playlist.Id);
+            var playlistcount = 0;
+            await foreach (var video in videos) {
+                playlistcount += 1;
+            }
+            _dialog.SetMessage("ダウンロード中...(1/"+(playlistcount + 1)+")");
+            var count = 0;
+            await foreach (var video in videos) {
+                count += 1;
+                await SingleVideoDownloadAsync(video.Url);
+                _dialog.SetProgress((float)count / (float)playlistcount);
+                _dialog.SetMessage("ダウンロード中...("+(count + 1)+"/" + (playlistcount + 1) + ")");
+            }
         }
 
         private async Task ShowErrorMessageAsync() {

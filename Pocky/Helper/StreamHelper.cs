@@ -8,21 +8,6 @@ using YoutubeExplode.Videos.Streams;
 namespace Pocky.Helper {
     public class StreamHelper {
 
-        public static async Task<Audio> GetAudio(string url) {
-            var youtubeClient = new YoutubeClient();
-            var video = await youtubeClient.Videos.GetAsync(url);
-            var streamManifest = await youtubeClient.Videos.Streams.GetManifestAsync(video.Id);
-            var streamUrl = streamManifest.GetAudioOnlyStreams().GetWithHighestBitrate().Url;
-            return new Audio { Path = streamUrl, Title = video.Title, Url = video.Url };
-        }
-
-
-        public static async Task<string> getHighestBitrateUrl(YoutubeExplode.Videos.VideoId id) {
-            var youtubeClient = new YoutubeClient();
-            var streamManifest = await youtubeClient.Videos.Streams.GetManifestAsync(id);
-            return streamManifest.GetAudioOnlyStreams().GetWithHighestBitrate().Url;
-        }
-
         public static async Task<YoutubeType> GetType(string url) {
             var youtube = new YoutubeClient();
             YoutubeType value = YoutubeType.NotFound;
@@ -42,15 +27,6 @@ namespace Pocky.Helper {
                 }
             }
             return value;
-        }
-
-        public static PlaylistClient GetPlaylistClient() {
-            return new YoutubeClient().Playlists;
-        }
-
-        public static async Task<Playlist> GetPlaylists(string url) {
-            var youtubeClient = new YoutubeClient();
-            return await youtubeClient.Playlists.GetAsync(url);
         }
     }
 }
