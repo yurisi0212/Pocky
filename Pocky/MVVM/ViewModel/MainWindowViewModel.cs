@@ -5,11 +5,13 @@ using Pocky.MVVM.Model;
 using Pocky.MVVM.View;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using YoutubeExplode;
 using YoutubeExplode.Converter;
+using YoutubeExplode.Videos.Streams;
 
 namespace Pocky.MVVM.ViewModel {
     public class MainWindowViewModel : DependencyObject {
@@ -23,9 +25,18 @@ namespace Pocky.MVVM.ViewModel {
         public static readonly DependencyProperty YoutubeURLTextProperty =
             DependencyProperty.Register("TitleText", typeof(string), typeof(MainWindowViewModel), new UIPropertyMetadata(""));
 
+
+        public static readonly DependencyProperty MovieProperty =
+            DependencyProperty.Register("Movie", typeof(bool), typeof(MainWindowViewModel), new UIPropertyMetadata(false));
+
         public string YoutubeURLText {
             get => (string)GetValue(YoutubeURLTextProperty);
             set => SetValue(YoutubeURLTextProperty, value);
+        }
+
+        public bool IsMovie {
+            get => (bool)GetValue(MovieProperty);
+            set => SetValue(MovieProperty, value);
         }
 
         public ICommand OpenFolderCommand { get; }
@@ -58,7 +69,6 @@ namespace Pocky.MVVM.ViewModel {
 
         private async void Download() {
             var type = StreamHelper.GetType(YoutubeURLText);
-            Debug.Print(type.ToString());
             _dialog = await _parentWindow.ShowProgressAsync("Pocky", "ダウンロード中...", true);
             switch (type.Result) {
                 case YoutubeType.Video:
@@ -78,9 +88,21 @@ namespace Pocky.MVVM.ViewModel {
         private async Task SingleVideoDownloadAsync(string url) {
             var youtubeClient = new YoutubeClient();
             var video = await youtubeClient.Videos.GetAsync(url);
-            var music = _directory.Path + video.Title + ".mp3";
-            if (File.Exists(music)) File.Delete(music);
-            await youtubeClient.Videos.DownloadAsync(video.Id, music);
+            if (IsMovie) {
+                var filename = _directory.Path + video.Id + ".mp4";
+                var streamManifest = await youtubeClient.Videos.Streams.GetManifestAsync(video.Id);
+                var audioStreamInfo = streamManifest.GetAudioStreams().GetWithHighestBitrate();
+                var videoStreamInfo = streamManifest.GetVideoStreams().GetWithHighestVideoQuality();
+                var streamInfos = new IStreamInfo[] { audioStreamInfo, videoStreamInfo };
+                await youtubeClient.Videos.DownloadAsync(streamInfos, new ConversionRequestBuilder(filename).Build());
+                File.Copy(filename, _directory.Path + video.Title.Replace(@"/", "-") + ".mp4", true);
+                File.Delete(filename);
+            } else {
+            var filename = _directory.Path + video.Id +  ".mp3";
+            await youtubeClient.Videos.DownloadAsync(video.Id, filename);
+                File.Copy(filename, _directory.Path + video.Title.Replace(@"/", "-") + ".mp3", true);
+                File.Delete(filename);
+            }
         }
 
         private async Task PlaylistDownloadAsync() {
@@ -91,13 +113,13 @@ namespace Pocky.MVVM.ViewModel {
             await foreach (var video in videos) {
                 playlistcount += 1;
             }
-            _dialog.SetMessage("ダウンロード中...(1/"+(playlistcount + 1)+")");
+            _dialog.SetMessage("ダウンロード中...(1/"+(playlistcount)+")");
             var count = 0;
             await foreach (var video in videos) {
                 count += 1;
                 await SingleVideoDownloadAsync(video.Url);
                 _dialog.SetProgress((float)count / (float)playlistcount);
-                _dialog.SetMessage("ダウンロード中...("+(count + 1)+"/" + (playlistcount + 1) + ")");
+                _dialog.SetMessage("ダウンロード中...("+(count + 1)+"/" + (playlistcount) + ")");
             }
         }
 
