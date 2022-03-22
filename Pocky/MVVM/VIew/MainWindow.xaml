@@ -16,6 +16,9 @@
                     <Separator />
                     <MenuItem Header="終了" Command="{Binding ExitCommand}"/>
                 </MenuItem>
+                <MenuItem Header="設定(_S)">
+                    <MenuItem Header="動画でダウンロード" IsCheckable="True" IsChecked="{Binding IsMovie}"/>
+                </MenuItem>
                 <MenuItem Header="その他(_O)">
                     <MenuItem Header="バージョン情報" Command="{Binding VersionInfoCommand}"/>
                 </MenuItem>
