@@ -88,19 +88,25 @@ namespace Pocky.MVVM.ViewModel {
         private async Task SingleVideoDownloadAsync(string url) {
             var youtubeClient = new YoutubeClient();
             var video = await youtubeClient.Videos.GetAsync(url);
+            var invalidChars = Path.GetInvalidFileNameChars();
             if (IsMovie) {
                 var filename = _directory.Path + video.Id + ".mp4";
+
                 var streamManifest = await youtubeClient.Videos.Streams.GetManifestAsync(video.Id);
                 var audioStreamInfo = streamManifest.GetAudioStreams().GetWithHighestBitrate();
                 var videoStreamInfo = streamManifest.GetVideoStreams().GetWithHighestVideoQuality();
                 var streamInfos = new IStreamInfo[] { audioStreamInfo, videoStreamInfo };
                 await youtubeClient.Videos.DownloadAsync(streamInfos, new ConversionRequestBuilder(filename).Build());
-                File.Copy(filename, _directory.Path + video.Title.Replace(@"/", "-") + ".mp4", true);
+                var convertedFilename = string.Concat(
+                    video.Title.Replace(@"/", "_").Select(c => invalidChars.Contains(c) ? '_' : c));
+                File.Copy(filename, _directory.Path + convertedFilename + ".mp4", true);
                 File.Delete(filename);
             } else {
             var filename = _directory.Path + video.Id +  ".mp3";
             await youtubeClient.Videos.DownloadAsync(video.Id, filename);
-                File.Copy(filename, _directory.Path + video.Title.Replace(@"/", "-") + ".mp3", true);
+            var convertedFilename = string.Concat(
+                video.Title.Replace(@"/", "_").Select(c => invalidChars.Contains(c) ? '_' : c));
+                File.Copy(filename, _directory.Path + convertedFilename + ".mp3", true);
                 File.Delete(filename);
             }
         }
