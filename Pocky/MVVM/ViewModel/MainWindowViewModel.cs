@@ -57,7 +57,7 @@ namespace Pocky.MVVM.ViewModel {
         private async void VersionInfoAsync() {
             await _parentWindow.ShowMessageAsync(
                     "Pocky", 
-                    "Pocky version 1.0.0\n\n" +
+                    "Pocky version 1.1.0\n\n" +
                     "Copylight(C)2021 yurisi All rights reserved.\n" +
                     "本ソフトウェアはJellyParfaitの一部機能を削除したものです。\n\n" +
                     "本ソフトウェアはオープンソースソフトウェアです。\n" +
